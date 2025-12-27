@@ -9,7 +9,6 @@ private:
     double batteryCapacity = 0.0; 
     double rangePerCharge = 0.0;  
     double chargeTime = 0.0;
-
 public:
     ElectricCar(){}
     ElectricCar(const string& brand, const string& model,
@@ -22,19 +21,15 @@ public:
         chargeTime(chargeTime) {
     }
     virtual ~ElectricCar() = default;
-
     double getBatteryCapacity() const;
     double getRangePerCharge() const;
     double getChargeTime() const;
-
     void setBatteryCapacity(double capacity);
     void setRangePerCharge(double range);
     void setChargeTime(double time);
-
     virtual void printHeader() const override;
     virtual void printInfo() const override;
     virtual double calculateRentPrice(int days) override;
-
     friend ostream& operator << (ostream& os, const ElectricCar& ec);
     friend istream& operator >> (istream& is, ElectricCar& ec);
 };

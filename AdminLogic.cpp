@@ -1,5 +1,5 @@
 #include "AdminLogic.h"
-#include "ClientLogic.h" // Для VehicleSearchCriteria
+#include "ClientLogic.h" 
 #include "Car.h"
 #include <iomanip>
 #include <algorithm>
@@ -10,6 +10,7 @@
 #include "Input.h"
 #include "Exp_contr.h"
 #include "AppConnector.h"
+#include "Algorithm.h"
 
 AdminLogic::AdminLogic(MenuDisplay& menu, Container<EconomyCar>& ec, Container<PremiumCar>& pc, 
                        Container<Truck>& t, Container<ElectricCar>& elc, Container<Client>& cl, Container<Order>& ord, AppConnector* app)
@@ -28,12 +29,12 @@ Admin* AdminLogic::getCurrentAdmin() const {
     return currentAdmin;
 }
 
+// Аутентификация администратора
 bool AdminLogic::authenticateUser() {
     std::cout << "Enter login: ";
     std::string login = inputString();
     std::cout << "Enter password: ";
     std::string password = inputString();
-    
     if (login == "admin" && password == "admin") {
         currentAdmin = new Admin(login, password);
         std::cout << "Welcome, Admin!\n";
@@ -47,6 +48,7 @@ bool AdminLogic::authenticateUser() {
     }
 }
 
+// Отображение меню администратора
 void AdminLogic::showAdminMenu() {
     while (true) {
         menuDisplay.clearScreen();
@@ -56,25 +58,30 @@ void AdminLogic::showAdminMenu() {
         std::cout << "3. Manage orders\n";
         std::cout << "0. Logout\n\n";
         
-        int choice = inputNumber<int>(std::cin, 0, 3);
+        int choice = menuDisplay.getChoice(0, 3);
         
         switch (choice) {
         case 1:
+            // Управление автомобилями
             adminManageVehicles();
             break;
         case 2:
+            // Управление клиентами
             adminManageClients();
             break;
         case 3:
+            // Управление заказами
             adminManageOrders();
             break;
         case 0:
+            // Выход из меню администратора
             currentAdmin = nullptr;
             return;
         }
     }
 }
 
+// Выбор типа транспортного средства
 int AdminLogic::selectVehicleType(const std::string& title, bool allowAllOption) {
     menuDisplay.clearScreen();
     std::cout << title << "\n\n";
@@ -91,7 +98,6 @@ int AdminLogic::selectVehicleType(const std::string& title, bool allowAllOption)
         return menuDisplay.getChoice(0, 4);
     }
 }
-
 std::string AdminLogic::getVehicleTypeName(int vehicleType) {
     switch (vehicleType) {
         case 1: return "Economy Car";
@@ -101,30 +107,42 @@ std::string AdminLogic::getVehicleTypeName(int vehicleType) {
         default: return "";
     }
 }
-
+// Управление транспортными средствами администратором
 void AdminLogic::adminManageVehicles() {
     int vehicleType = selectVehicleType("MANAGE CARS - Select Vehicle Type");
     if (vehicleType == 0) return;
-    
     std::string typeName = getVehicleTypeName(vehicleType);
+    // Прямой вызов adminVehicleTypeMenu вместо callVehicleTypeMenu
     switch (vehicleType) {
-        case 1: callVehicleTypeMenu(economyCars, typeName, false); break;
-        case 2: callVehicleTypeMenu(premiumCars, typeName, false); break;
-        case 3: callVehicleTypeMenu(trucks, typeName, false); break;
-        case 4: callVehicleTypeMenu(electricCars, typeName, false); break;
+        case 1: adminVehicleTypeMenu(economyCars, typeName); break;
+        case 2: adminVehicleTypeMenu(premiumCars, typeName); break;
+        case 3: adminVehicleTypeMenu(trucks, typeName); break;
+        case 4: adminVehicleTypeMenu(electricCars, typeName); break;
     }
 }
 
+// Базовый метод поиска индекса элемента в контейнере по ID
 template<typename T>
-Vehicle* AdminLogic::findInContainer(Container<T>& container, int id) {
+int AdminLogic::findIndexById(Container<T>& container, int id) {
     for (int i = 0; i < container.size(); ++i) {
         if (container.isValid(i) && container[i].getId() == id) {
-            return &container[i];
+            return i;
         }
+    }
+    return -1;
+}
+
+// Поиск транспортного средства в контейнере по ID (использует findIndexById)
+template<typename T>
+Vehicle* AdminLogic::findInContainer(Container<T>& container, int id) {
+    int index = findIndexById(container, id);
+    if (index != -1) {
+        return &container[index];
     }
     return nullptr;
 }
 
+// Поиск транспортного средства по ID во всех типах контейнеров
 Vehicle* AdminLogic::findVehicleById(int id) {
     Vehicle* result = findInContainer(economyCars, id);
     if (result) return result;
@@ -138,24 +156,12 @@ Vehicle* AdminLogic::findVehicleById(int id) {
     result = findInContainer(electricCars, id);
     return result;
 }
-
-template<typename T>
-int AdminLogic::findIndexById(Container<T>& container, int id) {
-    for (int i = 0; i < container.size(); ++i) {
-        if (container.isValid(i) && container[i].getId() == id) {
-            return i;
-        }
-    }
-    return -1;
-}
-
 template<typename T>
 void AdminLogic::deleteItemById(Container<T>& container, const std::string& typeName, const std::string& itemName) {
     menuDisplay.clearScreen();
     menuDisplay.viewAllItems(container, typeName);
     std::cout << "\nEnter " + itemName + " ID to remove: ";
     int id = inputNumber<int>(std::cin, 0, 1000);
-    
     int index = findIndexById(container, id);
     if (index != -1) {
         try {
@@ -164,14 +170,14 @@ void AdminLogic::deleteItemById(Container<T>& container, const std::string& type
             if (appConnector) appConnector->saveAllData();
         }
         catch (const Exp_contr& e) {
-            std::cout << "Ошибка при удалении: " << e.what() << "\n";
+            std::cout << "Error during deletion: " << e.what() << "\n";
         }
     } else {
         std::cout << itemName << " not found!\n";
     }
     menuDisplay.pause();
 }
-
+// Управление клиентами администратором
 void AdminLogic::adminManageClients() {
     while (true) {
         menuDisplay.clearScreen();
@@ -181,20 +187,23 @@ void AdminLogic::adminManageClients() {
         std::cout << "3. Remove client\n";
         std::cout << "4. Update client\n";
         std::cout << "0. Back\n\n";
-        
-        int choice = inputNumber<int>(cin, 0, 4);
+        int choice = menuDisplay.getChoice(0, 4);
         
         switch (choice) {
         case 1:
+            // Показать всех клиентов
             menuDisplay.viewAllItems(clients, "ALL CLIENTS");
             break;
         case 2:
+            // Добавить клиента
             addClient();
             break;
         case 3:
+            // Удалить клиента
             deleteItemById(clients, "ALL CLIENTS", "Client");
             break;
         case 4:
+            // Редактировать клиента
             editClient();
             break;
         case 0:
@@ -202,7 +211,6 @@ void AdminLogic::adminManageClients() {
         }
     }
 }
-
 void AdminLogic::addClient() {
     menuDisplay.clearScreen();
     std::cout << "ADD CLIENT:\n\n";
@@ -234,7 +242,7 @@ void AdminLogic::addClient() {
         std::cout << "\nClient added successfully!\n";
     }
     catch (const Exp_contr& e) {
-        std::cout << "Ошибка при добавлении клиента: " << e.what() << "\n";
+        std::cout << "Error adding client: " << e.what() << "\n";
         menuDisplay.pause();
         return;
     }
@@ -258,6 +266,24 @@ void AdminLogic::editClient() {
     editClientAt(index, nullptr);
 }
 
+// Общий шаблон для обновления поля в контейнере
+template<typename T, typename ValueType>
+bool AdminLogic::updateField(Container<T>& container, int index, const std::string& prompt, 
+                              const std::function<void(T&, ValueType)>& setter, 
+                              const std::function<ValueType()>& getter) {
+    std::cout << prompt;
+    ValueType newValue = getter ? getter() : ValueType();
+    try {
+        container.update(index, [newValue, setter](T& item) { setter(item, newValue); });
+        return true;
+    }
+    catch (const Exp_contr& e) {
+        std::cout << "Error during update: " << e.what() << "\n";
+        menuDisplay.pause();
+        return false;
+    }
+}
+
 void AdminLogic::editClientAt(int index, Client* currentClientPtr) {
     if (index < 0 || index >= clients.size() || !clients.isValid(index)) {
         std::cout << "Invalid client index!\n";
@@ -279,68 +305,38 @@ void AdminLogic::editClientAt(int index, Client* currentClientPtr) {
     std::cout << "3. Phone\n";
     std::cout << "4. Email\n";
     std::cout << "0. Cancel\n\n";
-    std::cout << "Your choice: ";
-    int field = inputNumber<int>(std::cin, 0, 4);
+    int field = menuDisplay.getChoice(0, 4);
     if (field == 0) return;
     
+    bool success = false;
     switch (field) {
-        case 1: {
-            std::cout << "New first name: ";
-            std::string newValue = inputString();
-            try {
-                clients.update(index, [newValue](Client& c) { c.setFirstName(newValue); });
-                if (currentClientPtr) currentClientPtr->setFirstName(newValue);
-            }
-            catch (const Exp_contr& e) {
-                std::cout << "Ошибка при обновлении: " << e.what() << "\n";
-                menuDisplay.pause();
-                return;
-            }
+        case 1:
+            success = updateField<Client, std::string>(clients, index, "New first name: ",
+                [](Client& c, const std::string& v) { c.setFirstName(v); },
+                []() { return inputString(); });
+            if (success && currentClientPtr) currentClientPtr->setFirstName(clients[index].getFirstName());
             break;
-        }
-        case 2: {
-            std::cout << "New last name: ";
-            std::string newValue = inputString();
-            try {
-                clients.update(index, [newValue](Client& c) { c.setLastName(newValue); });
-                if (currentClientPtr) currentClientPtr->setLastName(newValue);
-            }
-            catch (const Exp_contr& e) {
-                std::cout << "Ошибка при обновлении: " << e.what() << "\n";
-                menuDisplay.pause();
-                return;
-            }
+        case 2:
+            success = updateField<Client, std::string>(clients, index, "New last name: ",
+                [](Client& c, const std::string& v) { c.setLastName(v); },
+                []() { return inputString(); });
+            if (success && currentClientPtr) currentClientPtr->setLastName(clients[index].getLastName());
             break;
-        }
-        case 3: {
-            std::cout << "New phone: ";
-            std::string newValue = inputString();
-            try {
-                clients.update(index, [newValue](Client& c) { c.setPhoneNumber(newValue); });
-                if (currentClientPtr) currentClientPtr->setPhoneNumber(newValue);
-            }
-            catch (const Exp_contr& e) {
-                std::cout << "Ошибка при обновлении: " << e.what() << "\n";
-                menuDisplay.pause();
-                return;
-            }
+        case 3:
+            success = updateField<Client, std::string>(clients, index, "New phone: ",
+                [](Client& c, const std::string& v) { c.setPhoneNumber(v); },
+                []() { return inputString(); });
+            if (success && currentClientPtr) currentClientPtr->setPhoneNumber(clients[index].getPhoneNumber());
             break;
-        }
-        case 4: {
-            std::cout << "New email: ";
-            std::string newValue = inputString();
-            try {
-                clients.update(index, [newValue](Client& c) { c.setEmail(newValue); });
-                if (currentClientPtr) currentClientPtr->setEmail(newValue);
-            }
-            catch (const Exp_contr& e) {
-                std::cout << "Ошибка при обновлении: " << e.what() << "\n";
-                menuDisplay.pause();
-                return;
-            }
+        case 4:
+            success = updateField<Client, std::string>(clients, index, "New email: ",
+                [](Client& c, const std::string& v) { c.setEmail(v); },
+                []() { return inputString(); });
+            if (success && currentClientPtr) currentClientPtr->setEmail(clients[index].getEmail());
             break;
-        }
     }
+    
+    if (!success) return;
     
     std::cout << "\n" << (currentClientPtr ? "Profile" : "Client") << " updated successfully!\n";
     if (appConnector) appConnector->saveAllData();
@@ -354,8 +350,7 @@ void AdminLogic::adminManageOrders() {
         std::cout << "1. Show all orders\n";
         std::cout << "2. Process orders\n";
         std::cout << "0. Back\n\n";
-        std::cout << "Your choice: ";
-        int choice = inputNumber<int>(std::cin, 0, 2);
+        int choice = menuDisplay.getChoice(0, 2);
         
         switch (choice) {
         case 1:
@@ -369,12 +364,11 @@ void AdminLogic::adminManageOrders() {
         }
     }
 }
-
+// Обработка заказов администратором
 void AdminLogic::adminProcessOrders() {
     menuDisplay.clearScreen();
     std::cout << "PROCESS ORDERS:\n\n";
-    
-    // Show only PENDING orders
+    // Показать только заказы со статусом PENDING (ожидающие обработки)
     std::vector<int> pendingOrderIndices;
     bool hasHeader = false;
     for (int i = 0; i < orders.size(); ++i) {
@@ -413,13 +407,10 @@ void AdminLogic::adminProcessOrders() {
         menuDisplay.pause();
         return;
     }
-    
     std::cout << "\n1. Approve\n";
     std::cout << "2. Reject\n";
-    std::cout << "0. Cancel\n";
-    std::cout << "Your choice: ";
-    int action = inputNumber<int>(std::cin, 0, 2);
-    
+    std::cout << "0. Cancel\n\n";
+    int action = menuDisplay.getChoice(0, 2);
     if (action == 1) {
         approveOrder(*selectedOrder);
     }
@@ -427,7 +418,6 @@ void AdminLogic::adminProcessOrders() {
         rejectOrder(*selectedOrder);
     }
 }
-
 void AdminLogic::approveOrder(Order& order) {
     if (currentAdmin) {
         currentAdmin->approveOrder(order);
@@ -436,8 +426,7 @@ void AdminLogic::approveOrder(Order& order) {
     }
     menuDisplay.pause();
 }
-
-void AdminLogic::rejectOrder(Order& order) {
+void AdminLogic::rejectOrder(Order& order) {    
     std::cout << "Enter rejection reason: ";
     std::string reason = inputString();
     if (currentAdmin) {
@@ -447,10 +436,9 @@ void AdminLogic::rejectOrder(Order& order) {
     }
     menuDisplay.pause();
 }
-
-// Шаблонные функции для работы с типами автомобилей
+// Общий метод для отображения списка транспортных средств (без фильтра)
 template<typename T>
-void AdminLogic::showVehiclesByType(Container<T>& container, const std::string& typeName, bool onlyAvailable) {
+void AdminLogic::displayVehiclesList(Container<T>& container, const std::string& typeName, bool onlyAvailable) {
     menuDisplay.clearScreen();
     std::cout << typeName << ":\n\n";
     
@@ -461,25 +449,71 @@ void AdminLogic::showVehiclesByType(Container<T>& container, const std::string& 
     }
     
     bool found = false;
+    bool hasHeader = false;
     for (int i = 0; i < container.size(); ++i) {
         if (container.isValid(i) && (!onlyAvailable || container[i].getIsAvailable())) {
-            if (!found) {
+            if (!hasHeader) {
                 container[i].printHeader();
-                found = true;
+                hasHeader = true;
             }
             container[i].printInfo();
             std::cout << "\n";
+            found = true;
         }
     }
     
     if (!found) {
-        std::cout << "No available " << typeName << " found.\n";
+        std::cout << "No " << (onlyAvailable ? "available " : "") << typeName << " found.\n";
     }
     
     menuDisplay.pause();
 }
 
-// Ввод критериев поиска (копия из ClientLogic)
+// Общий метод для отображения списка транспортных средств (с фильтром)
+template<typename T, typename Pred>
+void AdminLogic::displayVehiclesList(Container<T>& container, const std::string& typeName, bool onlyAvailable, 
+                                      Pred&& filter) {
+    menuDisplay.clearScreen();
+    std::cout << typeName << ":\n\n";
+    
+    if (container.size() == 0) {
+        std::cout << "No " << typeName << " found.\n";
+        menuDisplay.pause();
+        return;
+    }
+    
+    bool found = false;
+    bool hasHeader = false;
+    for (int i = 0; i < container.size(); ++i) {
+        if (container.isValid(i) && (!onlyAvailable || container[i].getIsAvailable())) {
+            // Применяем дополнительный фильтр
+            if (!filter(container[i])) {
+                continue;
+            }
+            
+            if (!hasHeader) {
+                container[i].printHeader();
+                hasHeader = true;
+            }
+            container[i].printInfo();
+            std::cout << "\n";
+            found = true;
+        }
+    }
+    
+    if (!found) {
+        std::cout << "No " << (onlyAvailable ? "available " : "") << typeName << " found.\n";
+    }
+    
+    menuDisplay.pause();
+}
+
+// Отображение транспортных средств конкретного типа
+template<typename T>
+void AdminLogic::showVehiclesByType(Container<T>& container, const std::string& typeName, bool onlyAvailable) {
+    displayVehiclesList(container, typeName, onlyAvailable);
+}
+// Ввод критериев поиска транспортных средств
 template<typename T>
 VehicleSearchCriteria AdminLogic::inputSearchCriteria() {
     VehicleSearchCriteria criteria;
@@ -610,8 +644,7 @@ VehicleSearchCriteria AdminLogic::inputSearchCriteria() {
     
     return criteria;
 }
-
-// Проверка соответствия критериям (копия из ClientLogic)
+// Проверка соответствия транспортного средства критериям поиска
 template<typename T>
 bool AdminLogic::matchesCriteria(const T* vehicle, const VehicleSearchCriteria& criteria) {
     if (!vehicle) return false;
@@ -657,7 +690,7 @@ bool AdminLogic::matchesCriteria(const T* vehicle, const VehicleSearchCriteria& 
     return true;
 }
 
-// Универсальная функция поиска
+// Универсальная функция поиска транспортных средств по критериям
 template<typename T>
 void AdminLogic::searchVehiclesByType(Container<T>& container, const std::string& typeName, bool onlyAvailable) {
     if (container.size() == 0) {
@@ -668,28 +701,14 @@ void AdminLogic::searchVehiclesByType(Container<T>& container, const std::string
     
     VehicleSearchCriteria criteria = inputSearchCriteria<T>();
     
-    std::cout << "\nFound " << typeName << ":\n";
-    bool found = false;
-    bool hasHeader = false;
-    
-    for (int i = 0; i < container.size(); ++i) {
-        if (container.isValid(i) && (!onlyAvailable || container[i].getIsAvailable())) {
-            if (matchesCriteria(&container[i], criteria)) {
-                if (!hasHeader) {
-                    container[i].printHeader();
-                    hasHeader = true;
-                }
-                container[i].printInfo();
-                std::cout << "\n";
-                found = true;
-            }
-        }
-    }
-    if (!found) {std::cout << "No " << typeName << " found.\n";}
-    menuDisplay.pause();
+    // Используем общий метод отображения с фильтром по критериям
+    displayVehiclesList(container, "Found " + typeName, onlyAvailable, 
+                        [&criteria, this](const T& vehicle) {
+                            return matchesCriteria(&vehicle, criteria);
+                        });
 }
 
-// Универсальная функция сортировки (копия из ClientLogic)
+// Универсальная функция сортировки транспортных средств
 template<typename T>
 void AdminLogic::sortVehiclesByType(Container<T>& container, const std::string& typeName, bool onlyAvailable) {
     menuDisplay.clearScreen();
@@ -735,139 +754,138 @@ void AdminLogic::sortVehiclesByType(Container<T>& container, const std::string& 
     int choice = menuDisplay.getChoice(0, maxChoice);
     if (choice == 0) return;
     
-    // Collect vehicles into vector
-    std::vector<T*> vehicles;
-    for (int i = 0; i < container.size(); ++i) {
-        if (container.isValid(i) && (!onlyAvailable || container[i].getIsAvailable())) {
-            vehicles.push_back(&container[i]);
-        }
-    }
-    
-    // Sort
+    // Сортировка контейнера 
     switch (choice) {
         case 1:
-            std::sort(vehicles.begin(), vehicles.end(),
-                [](T* a, T* b) { return a->getBrand() < b->getBrand(); });
+            // Сортировка по возрастанию: меняем местами, если a > b
+            Algorithm::bubbleSort(container,
+                [](const T& a, const T& b) { return a.getBrand() > b.getBrand(); });
             std::cout << "Vehicles sorted by brand (ascending).\n";
             break;
         case 2:
-            std::sort(vehicles.begin(), vehicles.end(),
-                [](T* a, T* b) { return a->getBrand() > b->getBrand(); });
+            // Сортировка по убыванию: меняем местами, если a < b
+            Algorithm::bubbleSort(container,
+                [](const T& a, const T& b) { return a.getBrand() < b.getBrand(); });
             std::cout << "Vehicles sorted by brand (descending).\n";
             break;
         case 3:
-            std::sort(vehicles.begin(), vehicles.end(),
-                [](T* a, T* b) { return a->getModel() < b->getModel(); });
+            Algorithm::bubbleSort(container,
+                [](const T& a, const T& b) { return a.getModel() > b.getModel(); });
             std::cout << "Vehicles sorted by model (ascending).\n";
             break;
         case 4:
-            std::sort(vehicles.begin(), vehicles.end(),
-                [](T* a, T* b) { return a->getModel() > b->getModel(); });
+            Algorithm::bubbleSort(container,
+                [](const T& a, const T& b) { return a.getModel() < b.getModel(); });
             std::cout << "Vehicles sorted by model (descending).\n";
             break;
         case 5:
-            std::sort(vehicles.begin(), vehicles.end(),
-                [](T* a, T* b) { return a->getPricePerDay() < b->getPricePerDay(); });
+            Algorithm::bubbleSort(container,
+                [](const T& a, const T& b) { return a.getPricePerDay() > b.getPricePerDay(); });
             std::cout << "Vehicles sorted by price (ascending).\n";
             break;
         case 6:
-            std::sort(vehicles.begin(), vehicles.end(),
-                [](T* a, T* b) { return a->getPricePerDay() > b->getPricePerDay(); });
+            Algorithm::bubbleSort(container,
+                [](const T& a, const T& b) { return a.getPricePerDay() < b.getPricePerDay(); });
             std::cout << "Vehicles sorted by price (descending).\n";
             break;
         case 7:
-            std::sort(vehicles.begin(), vehicles.end(),
-                [](T* a, T* b) { return a->getYear() < b->getYear(); });
+            Algorithm::bubbleSort(container,
+                [](const T& a, const T& b) { return a.getYear() > b.getYear(); });
             std::cout << "Vehicles sorted by year (ascending).\n";
             break;
         case 8:
-            std::sort(vehicles.begin(), vehicles.end(),
-                [](T* a, T* b) { return a->getYear() > b->getYear(); });
+            Algorithm::bubbleSort(container,
+                [](const T& a, const T& b) { return a.getYear() < b.getYear(); });
             std::cout << "Vehicles sorted by year (descending).\n";
             break;
         case 9:
-            std::sort(vehicles.begin(), vehicles.end(),
-                [](T* a, T* b) { return a->getMileage() < b->getMileage(); });
+            Algorithm::bubbleSort(container,
+                [](const T& a, const T& b) { return a.getMileage() > b.getMileage(); });
             std::cout << "Vehicles sorted by mileage (ascending).\n";
             break;
         case 10:
-            std::sort(vehicles.begin(), vehicles.end(),
-                [](T* a, T* b) { return a->getMileage() > b->getMileage(); });
+            Algorithm::bubbleSort(container,
+                [](const T& a, const T& b) { return a.getMileage() < b.getMileage(); });
             std::cout << "Vehicles sorted by mileage (descending).\n";
             break;
         case 11:
             if constexpr (std::is_same_v<T, Truck>) {
-                std::sort(vehicles.begin(), vehicles.end(),
-                    [](T* a, T* b) { return a->getMaxLoad() < b->getMaxLoad(); });
+                Algorithm::bubbleSort(container,
+                    [](const T& a, const T& b) { return a.getMaxLoad() > b.getMaxLoad(); });
                 std::cout << "Vehicles sorted by max load (ascending).\n";
             } else if constexpr (std::is_same_v<T, ElectricCar>) {
-                std::sort(vehicles.begin(), vehicles.end(),
-                    [](T* a, T* b) { return a->getBatteryCapacity() < b->getBatteryCapacity(); });
+                Algorithm::bubbleSort(container,
+                    [](const T& a, const T& b) { return a.getBatteryCapacity() > b.getBatteryCapacity(); });
                 std::cout << "Vehicles sorted by battery capacity (ascending).\n";
             }
             break;
         case 12:
             if constexpr (std::is_same_v<T, Truck>) {
-                std::sort(vehicles.begin(), vehicles.end(),
-                    [](T* a, T* b) { return a->getMaxLoad() > b->getMaxLoad(); });
+                Algorithm::bubbleSort(container,
+                    [](const T& a, const T& b) { return a.getMaxLoad() < b.getMaxLoad(); });
                 std::cout << "Vehicles sorted by max load (descending).\n";
             } else if constexpr (std::is_same_v<T, ElectricCar>) {
-                std::sort(vehicles.begin(), vehicles.end(),
-                    [](T* a, T* b) { return a->getBatteryCapacity() > b->getBatteryCapacity(); });
+                Algorithm::bubbleSort(container,
+                    [](const T& a, const T& b) { return a.getBatteryCapacity() < b.getBatteryCapacity(); });
                 std::cout << "Vehicles sorted by battery capacity (descending).\n";
             }
             break;
         case 13:
             if constexpr (std::is_same_v<T, Truck>) {
-                std::sort(vehicles.begin(), vehicles.end(),
-                    [](T* a, T* b) { return a->getCargoVolume() < b->getCargoVolume(); });
+                Algorithm::bubbleSort(container,
+                    [](const T& a, const T& b) { return a.getCargoVolume() > b.getCargoVolume(); });
                 std::cout << "Vehicles sorted by cargo volume (ascending).\n";
             } else if constexpr (std::is_same_v<T, ElectricCar>) {
-                std::sort(vehicles.begin(), vehicles.end(),
-                    [](T* a, T* b) { return a->getRangePerCharge() < b->getRangePerCharge(); });
+                Algorithm::bubbleSort(container,
+                    [](const T& a, const T& b) { return a.getRangePerCharge() > b.getRangePerCharge(); });
                 std::cout << "Vehicles sorted by range (ascending).\n";
             }
             break;
         case 14:
             if constexpr (std::is_same_v<T, Truck>) {
-                std::sort(vehicles.begin(), vehicles.end(),
-                    [](T* a, T* b) { return a->getCargoVolume() > b->getCargoVolume(); });
+                Algorithm::bubbleSort(container,
+                    [](const T& a, const T& b) { return a.getCargoVolume() < b.getCargoVolume(); });
                 std::cout << "Vehicles sorted by cargo volume (descending).\n";
             } else if constexpr (std::is_same_v<T, ElectricCar>) {
-                std::sort(vehicles.begin(), vehicles.end(),
-                    [](T* a, T* b) { return a->getRangePerCharge() > b->getRangePerCharge(); });
+                Algorithm::bubbleSort(container,
+                    [](const T& a, const T& b) { return a.getRangePerCharge() < b.getRangePerCharge(); });
                 std::cout << "Vehicles sorted by range (descending).\n";
             }
             break;
         case 15:
             if constexpr (std::is_same_v<T, ElectricCar>) {
-                std::sort(vehicles.begin(), vehicles.end(),
-                    [](T* a, T* b) { return a->getChargeTime() < b->getChargeTime(); });
+                Algorithm::bubbleSort(container,
+                    [](const T& a, const T& b) { return a.getChargeTime() > b.getChargeTime(); });
                 std::cout << "Vehicles sorted by charge time (ascending).\n";
             }
             break;
         case 16:
             if constexpr (std::is_same_v<T, ElectricCar>) {
-                std::sort(vehicles.begin(), vehicles.end(),
-                    [](T* a, T* b) { return a->getChargeTime() > b->getChargeTime(); });
+                Algorithm::bubbleSort(container,
+                    [](const T& a, const T& b) { return a.getChargeTime() < b.getChargeTime(); });
                 std::cout << "Vehicles sorted by charge time (descending).\n";
             }
             break;
     }
     
-    // Display sorted
-    std::cout << "\nSORTED " << typeName << ":\n\n";
-    if (!vehicles.empty()) {
-        vehicles[0]->printHeader();
-    }
-    for (T* v : vehicles) {
-        v->printInfo();
-        std::cout << "\n";
+    // Clear screen and display sorted results with filtering
+    /*menuDisplay.clearScreen();*/
+    std::cout << "SORTED " << typeName << ":\n\n";
+    bool hasHeader = false;
+    for (int i = 0; i < container.size(); ++i) {
+        if (container.isValid(i) && (!onlyAvailable || container[i].getIsAvailable())) {
+            if (!hasHeader) {
+                container[i].printHeader();
+                hasHeader = true;
+            }
+            container[i].printInfo();
+            std::cout << "\n";
+        }
     }
     
     menuDisplay.pause();
 }
-///////////////
+// Добавление транспортного средства конкретного типа
 template<typename T>
 void AdminLogic::addVehicleByType(Container<T>& container) {
     menuDisplay.clearScreen();
@@ -899,7 +917,7 @@ void AdminLogic::addVehicleByType(Container<T>& container) {
                 container.add(car);
             }
             catch (const Exp_contr& e) {
-                std::cout << "Ошибка при добавлении автомобиля: " << e.what() << "\n";
+                std::cout << "Error adding vehicle: " << e.what() << "\n";
                 menuDisplay.pause();
                 return;
             }
@@ -916,7 +934,7 @@ void AdminLogic::addVehicleByType(Container<T>& container) {
                 container.add(car);
             }
             catch (const Exp_contr& e) {
-                std::cout << "Ошибка при добавлении автомобиля: " << e.what() << "\n";
+                std::cout << "Error adding vehicle: " << e.what() << "\n";
                 menuDisplay.pause();
                 return;
             }
@@ -930,7 +948,7 @@ void AdminLogic::addVehicleByType(Container<T>& container) {
                 container.add(truck);
             }
             catch (const Exp_contr& e) {
-                std::cout << "Ошибка при добавлении автомобиля: " << e.what() << "\n";
+                std::cout << "Error adding vehicle: " << e.what() << "\n";
                 menuDisplay.pause();
                 return;
             }
@@ -946,7 +964,7 @@ void AdminLogic::addVehicleByType(Container<T>& container) {
                 container.add(car);
             }
             catch (const Exp_contr& e) {
-                std::cout << "Ошибка при добавлении автомобиля: " << e.what() << "\n";
+                std::cout << "Error adding vehicle: " << e.what() << "\n";
                 menuDisplay.pause();
                 return;
             }
@@ -1030,137 +1048,72 @@ void AdminLogic::updateVehicleByType(Container<T>& container, const std::string&
     int field = menuDisplay.getChoice(0, maxChoice);
     if (field == 0) return;
     
+    bool success = false;
     switch (field) {
-        case 1: {
-            std::cout << "New brand: ";
-            std::string newBrand = inputString();
-            try {
-                container.update(index, [newBrand](T& v) { v.setBrand(newBrand); });
-            }
-            catch (const Exp_contr& e) {
-                std::cout << "Ошибка при обновлении: " << e.what() << "\n";
-                menuDisplay.pause();
-                return;
-            }
+        case 1:
+            success = updateField<T, std::string>(container, index, "New brand: ",
+                [](T& v, const std::string& val) { v.setBrand(val); },
+                []() { return inputString(); });
             break;
-        }
-        case 2: {
-            std::cout << "New model: ";
-            std::string newModel = inputString();
-            try {
-                container.update(index, [newModel](T& v) { v.setModel(newModel); });
-            }
-            catch (const Exp_contr& e) {
-                std::cout << "Ошибка при обновлении: " << e.what() << "\n";
-                menuDisplay.pause();
-                return;
-            }
+        case 2:
+            success = updateField<T, std::string>(container, index, "New model: ",
+                [](T& v, const std::string& val) { v.setModel(val); },
+                []() { return inputString(); });
             break;
-        }
-        case 3: {
-            std::cout << "New license plate: ";
-            std::string newLicense = inputString();
-            try {
-                container.update(index, [newLicense](T& v) { v.setLicensePlate(newLicense); });
-            }
-            catch (const Exp_contr& e) {
-                std::cout << "Ошибка при обновлении: " << e.what() << "\n";
-                menuDisplay.pause();
-                return;
-            }
+        case 3:
+            success = updateField<T, std::string>(container, index, "New license plate: ",
+                [](T& v, const std::string& val) { v.setLicensePlate(val); },
+                []() { return inputString(); });
             break;
-        }
-        case 4: {
-            std::cout << "New price per day: ";
-            double newPrice = inputNumber<double>(std::cin, 0.0, DBL_MAX);
-            try {
-                container.update(index, [newPrice](T& v) { v.setPricePerDay(newPrice); });
-            }
-            catch (const Exp_contr& e) {
-                std::cout << "Ошибка при обновлении: " << e.what() << "\n";
-                menuDisplay.pause();
-                return;
-            }
+        case 4:
+            success = updateField<T, double>(container, index, "New price per day: ",
+                [](T& v, double val) { v.setPricePerDay(val); },
+                []() { return inputNumber<double>(std::cin, 0.0, DBL_MAX); });
             break;
-        }
-        case 5: {
-            std::cout << "New year: ";
-            int newYear = inputNumber<int>(std::cin, 1900, 2100);
-            try {
-                container.update(index, [newYear](T& v) { v.setYear(newYear); });
-            }
-            catch (const Exp_contr& e) {
-                std::cout << "Ошибка при обновлении: " << e.what() << "\n";
-                menuDisplay.pause();
-                return;
-            }
+        case 5:
+            success = updateField<T, int>(container, index, "New year: ",
+                [](T& v, int val) { v.setYear(val); },
+                []() { return inputNumber<int>(std::cin, 1900, 2100); });
             break;
-        }
-        case 6: {
-            std::cout << "New mileage: ";
-            double newMileage = inputNumber<double>(std::cin, 0.0, DBL_MAX);
-            try {
-                container.update(index, [newMileage](T& v) { v.setMileage(newMileage); });
-            }
-            catch (const Exp_contr& e) {
-                std::cout << "Ошибка при обновлении: " << e.what() << "\n";
-                menuDisplay.pause();
-                return;
-            }
+        case 6:
+            success = updateField<T, double>(container, index, "New mileage: ",
+                [](T& v, double val) { v.setMileage(val); },
+                []() { return inputNumber<double>(std::cin, 0.0, DBL_MAX); });
             break;
-        }
-        case 7: {
-            std::cout << "New color: ";
-            std::string newColor = inputString();
-            try {
-                container.update(index, [newColor](T& v) { v.setColor(newColor); });
-            }
-            catch (const Exp_contr& e) {
-                std::cout << "Ошибка при обновлении: " << e.what() << "\n";
-                menuDisplay.pause();
-                return;
-            }
+        case 7:
+            success = updateField<T, std::string>(container, index, "New color: ",
+                [](T& v, const std::string& val) { v.setColor(val); },
+                []() { return inputString(); });
             break;
-        }
         case 8: {
             std::cout << "1. Available\n";
             std::cout << "2. Not available\n";
             int availChoice = menuDisplay.getChoice(1, 2);
             bool newAvail = (availChoice == 1);
-            try {
-                container.update(index, [newAvail](T& v) { v.setIsAvailable(newAvail); });
-            }
-            catch (const Exp_contr& e) {
-                std::cout << "Ошибка при обновлении: " << e.what() << "\n";
-                menuDisplay.pause();
-                return;
-            }
+            success = updateField<T, bool>(container, index, "",
+                [](T& v, bool val) { v.setIsAvailable(val); },
+                [newAvail]() { return newAvail; });
             break;
         }
-        case 9: {
+        case 9:
             if constexpr (std::is_same_v<T, PremiumCar>) {
                 std::cout << "1. Has driver\n";
                 std::cout << "2. No driver\n";
                 int driverChoice = menuDisplay.getChoice(1, 2);
                 bool newHasDriver = (driverChoice == 1);
-                try {
-                    container.update(index, [newHasDriver](T& v) { v.setHasDriver(newHasDriver); });
-                }
-                catch (const Exp_contr& e) {
-                    std::cout << "Ошибка при обновлении: " << e.what() << "\n";
-                    menuDisplay.pause();
-                    return;
-                }
+                success = updateField<T, bool>(container, index, "",
+                    [](T& v, bool val) { v.setHasDriver(val); },
+                    [newHasDriver]() { return newHasDriver; });
             }
             break;
-        }
     }
+    
+    if (!success) return;
     
     std::cout << "\nVehicle updated successfully!\n";
     if (appConnector) appConnector->saveAllData();
     menuDisplay.pause();
 }
-
 template<typename T>
 void AdminLogic::undoByType(Container<T>& container, const std::string& typeName) {
     menuDisplay.clearScreen();
@@ -1175,7 +1128,6 @@ void AdminLogic::undoByType(Container<T>& container, const std::string& typeName
     
     menuDisplay.pause();
 }
-
 template<typename T>
 void AdminLogic::adminVehicleTypeMenu(Container<T>& container, const std::string& typeName) {
     while (true) {
@@ -1197,23 +1149,24 @@ void AdminLogic::adminVehicleTypeMenu(Container<T>& container, const std::string
     }
 }
 
+// Упрощенная версия - напрямую вызывает adminVehicleTypeMenu
 template<typename T>
 void AdminLogic::callVehicleTypeMenu(Container<T>& container, const std::string& typeName, bool isClient) {
     if (!isClient) {
         adminVehicleTypeMenu(container, typeName);
     }
+    // Для клиента используется ClientLogic::callVehicleTypeMenu
 }
-
 template<typename T>
 void AdminLogic::executeAdminOperation(Container<T>& container, const std::string& typeName, int operation) {
     switch (operation) {
-        case 1: showVehiclesByType(container, typeName, false); break;
-        case 2: addVehicleByType(container); break;
-        case 3: deleteVehicleByType(container, typeName); break;
-        case 4: updateVehicleByType(container, typeName); break;
-        case 5: sortVehiclesByType(container, typeName, false); break;
-        case 6: searchVehiclesByType(container, typeName, false); break;
-        case 7: undoByType(container, typeName); break;
+        case 1: showVehiclesByType(container, typeName, false); break;      // Показать все
+        case 2: addVehicleByType(container); break;                        // Добавить
+        case 3: deleteVehicleByType(container, typeName); break;           // Удалить
+        case 4: updateVehicleByType(container, typeName); break;            // Обновить
+        case 5: sortVehiclesByType(container, typeName, false); break;      // Сортировать
+        case 6: searchVehiclesByType(container, typeName, false); break;    // Поиск
+        case 7: undoByType(container, typeName); break;                     // Отменить
     }
 }
 

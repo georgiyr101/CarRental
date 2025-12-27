@@ -2,13 +2,11 @@
 #define CAR_H
 
 #include "Vehicle.h"
-
 class Car : public Vehicle
 {
 protected:
 	string fuelType = "";
 	string transmissionType = "";
-
 public:
 	Car() {}
 	Car(const string& brand, const string& model, const string& licensePlate,
@@ -28,17 +26,13 @@ public:
 		return *this;
 	}
 	virtual ~Car() = default;
-
 	string getFuelType() const;
 	string getTransmissionType() const;
-
 	void setFuelType(string fuel);
 	void setTransmissionType(string transmission);
-
 	virtual void printHeader() const override;
 	virtual void printInfo() const override;
 	virtual double calculateRentPrice(int days) override;
-
 	friend ostream& operator << (ostream& os, const Car& car);
 	friend istream& operator >> (istream& is, Car& car);
 };

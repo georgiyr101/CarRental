@@ -2,53 +2,20 @@
 #define ALGORITHM_H
 
 #include "Iterator.h"
+#include "Container.h"
+#include <vector>
 
-class Algorithm {
-public:
+namespace Algorithm {
+    template <typename T, typename Pred>
+    Iterator<T*> find(Container<T>& container, Pred pred);
 
-    // Поиск по предикату
-    template <typename It, typename Pred>
-    static It find(It begin, It end, Pred pred) {
-        for (It it = begin; it != end; ++it)
-            if (pred(*it))
-                return it;
-        return end;
-    }
+    template <typename T, typename Pred>
+    Container<T> findAll(Container<T>& container, Pred pred);
 
-    /*template <typename It, typename Pred>
-    static std::vector<It> findAll(It begin, It end, Pred pred) {
-        std::vector<It> result;
+    template <typename T, typename Comp>
+    void bubbleSort(Container<T>& container, Comp comp);
+}
 
-        for (It it = begin; it != end; ++it) {
-            if (pred(*it)) {
-                result.push_back(it);
-            }
-        }
-
-        return result;
-    }*/
-
-    // Bubble sort
-    template <typename It, typename Comp>
-    static void bubbleSort(It begin, It end, Comp comp) {
-        bool swapped = true;
-        while (swapped) {
-            swapped = false;
-
-            for (It it = begin; it != end; ++it) {
-                It next = it;
-                ++next;
-                if (next == end) break;
-
-                if (comp(*next, *it)) {
-                    std::swap(*next, *it);
-                    swapped = true;
-                }
-            }
-        }
-    }
-};
-
-
+#include "Algorithm.cpp"
 
 #endif

@@ -35,16 +35,13 @@ bool ClientLogic::authenticateUser() {
     std::string login = inputString();
     std::cout << "Enter password: ";
     std::string password = inputString();
-    
-    // Поиск клиента будет выполняться в AppConnector, так как нужен доступ к контейнеру clients
-    return false; // Временная заглушка
+    return false; 
 }
 
+// Регистрация нового клиента
 void ClientLogic::registerClient(Container<Client>& clients) {
     menuDisplay.clearScreen();
     std::cout << "REGISTER NEW CLIENT:\n\n";
-    
-    // Check if login already exists
     std::cout << "Login: ";
     std::string login = inputString();
     for (int i = 0; i < clients.size(); ++i) {
@@ -71,8 +68,6 @@ void ClientLogic::registerClient(Container<Client>& clients) {
     std::string dateOfBirth = inputString();
     std::cout << "Driver license: ";
     std::string driverLicense = inputString();
-    
-    // Find maximum ID
     int maxId = 0;
     for (int i = 0; i < clients.size(); ++i) {
         if (clients.isValid(i) && clients[i].getId() > maxId) {
@@ -88,13 +83,13 @@ void ClientLogic::registerClient(Container<Client>& clients) {
         std::cout << "\nRegistration successful!\n";
     }
     catch (const Exp_contr& e) {
-        std::cout << "Ошибка при регистрации: " << e.what() << "\n";
+        std::cout << "Error during registration: " << e.what() << "\n";
         menuDisplay.pause();
         return;
     }
     std::cout << "Welcome, " << firstName << "!\n";
     
-    // Auto-login
+    // Автоматический вход после регистрации
     for (int i = 0; i < clients.size(); ++i) {
         if (clients.isValid(i) && clients[i].getId() == newId) {
             currentClient = &clients[i];
@@ -119,24 +114,28 @@ void ClientLogic::showClientMenu(Container<Client>& clients) {
         
         switch (choice) {
         case 1:
+            // Просмотр автомобилей
             clientBrowseVehicles();
             break;
         case 2:
+            // Создание заказа
             clientCreateOrder();
             break;
         case 3:
+            // Просмотр своих заказов
             clientViewOrders();
             break;
         case 4:
+            // Редактирование профиля
             clientEditProfile(clients);
             break;
         case 0:
+            // Выход из меню клиента
             currentClient = nullptr;
             return;
         }
     }
 }
-
 
 void ClientLogic::clientBrowseVehicles() {
     if (!adminLogic) return;
@@ -144,7 +143,7 @@ void ClientLogic::clientBrowseVehicles() {
     if (vehicleType == 0) return;
     
     if (vehicleType == 5) {
-        // Показать все типы
+        // Показать все типы автомобилей
         menuDisplay.clearScreen();
         std::cout << "ALL AVAILABLE CARS:\n\n";
         showVehicles(true);
@@ -152,6 +151,7 @@ void ClientLogic::clientBrowseVehicles() {
         return;
     }
     
+    // Выбор конкретного типа автомобилей
     std::string typeName = adminLogic->getVehicleTypeName(vehicleType);
     switch (vehicleType) {
         case 1: callVehicleTypeMenu(economyCars, typeName, true); break;
@@ -160,26 +160,28 @@ void ClientLogic::clientBrowseVehicles() {
         case 4: callVehicleTypeMenu(electricCars, typeName, true); break;
     }
 }
-
-
+// Получение всех транспортных средств из всех контейнеров
 std::vector<Vehicle*> ClientLogic::getAllVehicles(bool onlyAvailable) {
     std::vector<Vehicle*> result;
-    
+    // Сбор экономичных автомобилей
     for (int i = 0; i < economyCars.size(); ++i) {
         if (economyCars.isValid(i) && (!onlyAvailable || economyCars[i].getIsAvailable())) {
             result.push_back(&economyCars[i]);
         }
     }
+    // Сбор премиум автомобилей
     for (int i = 0; i < premiumCars.size(); ++i) {
         if (premiumCars.isValid(i) && (!onlyAvailable || premiumCars[i].getIsAvailable())) {
             result.push_back(&premiumCars[i]);
         }
     }
+    // Сбор грузовиков
     for (int i = 0; i < trucks.size(); ++i) {
         if (trucks.isValid(i) && (!onlyAvailable || trucks[i].getIsAvailable())) {
             result.push_back(&trucks[i]);
         }
     }
+    // Сбор электромобилей
     for (int i = 0; i < electricCars.size(); ++i) {
         if (electricCars.isValid(i) && (!onlyAvailable || electricCars[i].getIsAvailable())) {
             result.push_back(&electricCars[i]);
@@ -187,41 +189,64 @@ std::vector<Vehicle*> ClientLogic::getAllVehicles(bool onlyAvailable) {
     }
     return result;
 }
-
+// Отображение всех транспортных средств с заголовками для каждого типа
 void ClientLogic::showVehicles(bool onlyAvailable) {
-    std::cout << "\n--- Economy Class ---\n";
+    // Экономичный класс - вывод заголовка один раз
+    bool hasEconomy = false;
     for (int i = 0; i < economyCars.size(); ++i) {
         if (economyCars.isValid(i) && (!onlyAvailable || economyCars[i].getIsAvailable())) {
+            if (!hasEconomy) {
+                std::cout << "\n--- Economy Class ---\n";
+                economyCars[i].printHeader();
+                hasEconomy = true;
+            }
             economyCars[i].printInfo();
             std::cout << "\n";
         }
     }
     
-    std::cout << "\n--- Premium Class ---\n";
+    // Премиум класс - вывод заголовка один раз
+    bool hasPremium = false;
     for (int i = 0; i < premiumCars.size(); ++i) {
         if (premiumCars.isValid(i) && (!onlyAvailable || premiumCars[i].getIsAvailable())) {
+            if (!hasPremium) {
+                std::cout << "\n--- Premium Class ---\n";
+                premiumCars[i].printHeader();
+                hasPremium = true;
+            }
             premiumCars[i].printInfo();
             std::cout << "\n";
         }
     }
-    
-    std::cout << "\n--- Trucks ---\n";
+    // Грузовики - вывод заголовка один раз
+    bool hasTruck = false;
     for (int i = 0; i < trucks.size(); ++i) {
         if (trucks.isValid(i) && (!onlyAvailable || trucks[i].getIsAvailable())) {
+            if (!hasTruck) {
+                std::cout << "\n--- Trucks ---\n";
+                trucks[i].printHeader();
+                std::cout << "\n";
+                hasTruck = true;
+            }
             trucks[i].printInfo();
             std::cout << "\n";
         }
     }
-    
-    std::cout << "\n--- Electric Cars ---\n";
+    // Электромобили - вывод заголовка один раз
+    bool hasElectric = false;
     for (int i = 0; i < electricCars.size(); ++i) {
         if (electricCars.isValid(i) && (!onlyAvailable || electricCars[i].getIsAvailable())) {
+            if (!hasElectric) {
+                std::cout << "\n--- Electric Cars ---\n";
+                electricCars[i].printHeader();
+                std::cout << "\n";
+                hasElectric = true;
+            }
             electricCars[i].printInfo();
             std::cout << "\n";
         }
     }
 }
-
 Vehicle* ClientLogic::selectVehicle() {
     if (!adminLogic) return nullptr;
     showVehicles(true);
@@ -234,17 +259,19 @@ Vehicle* ClientLogic::selectVehicle() {
     }
     return vehicle;
 }
-
+// Создание заказа клиентом
 void ClientLogic::clientCreateOrder() {
-    if (!adminLogic) return;
+
     menuDisplay.clearScreen();
     std::cout << "MAKE ORDER:\n\n";
     
+    // Показ всех доступных автомобилей
     showVehicles(true);
     
     std::cout << "\nEnter selected car ID: ";
     int vehicleId = inputNumber<int>(std::cin, 0, INT_MAX);
     
+    // Поиск выбранного транспортного средства
     Vehicle* selectedVehicle = adminLogic->findVehicleById(vehicleId);
     
     if (!selectedVehicle || !selectedVehicle->getIsAvailable()) {
@@ -253,37 +280,32 @@ void ClientLogic::clientCreateOrder() {
         return;
     }
     
+    // Ввод количества дней аренды
     std::cout << "Enter number of rental days: ";
     int days = inputNumber<int>(std::cin, 1, 365);
     
+    // Создание и добавление заказа
     Order newOrder(currentClient, selectedVehicle, days);
-    try {
-        orders.add(newOrder);
-        if (appConnector) appConnector->saveAllData();
-        std::cout << "\nOrder created successfully!\n";
-    }
-    catch (const Exp_contr& e) {
-        std::cout << "Ошибка при создании заказа: " << e.what() << "\n";
-        menuDisplay.pause();
-        return;
-    }
+    orders.add(newOrder);
+    if (appConnector) appConnector->saveAllData();
+    std::cout << "\nOrder created successfully!\n";
     std::cout << "Order ID: " << newOrder.getId() << "\n";
-    std::cout << "Total price: " << std::fixed << std::setprecision(2)
-        << newOrder.getTotalPrice() << " rub.\n";
-    
+    std::cout << "Total price: " << std::fixed << std::setprecision(2) << newOrder.getTotalPrice() << " rub.\n";
     menuDisplay.pause();
 }
-
+// Просмотр заказов текущего клиента
 void ClientLogic::clientViewOrders() {
     menuDisplay.clearScreen();
     std::cout << "MY ORDERS:\n\n";
     
     bool found = false;
     bool hasHeader = false;
+    // Поиск всех заказов текущего клиента
     for (int i = 0; i < orders.size(); ++i) {
         if (orders.isValid(i)) {
             Order& order = orders[i];
             if (order.getClient() == currentClient) {
+                // Вывод заголовка таблицы один раз
                 if (!hasHeader) {
                     order.printHeader();
                     hasHeader = true;
@@ -300,11 +322,11 @@ void ClientLogic::clientViewOrders() {
     
     menuDisplay.pause();
 }
-
+// Редактирование профиля клиента
 void ClientLogic::clientEditProfile(Container<Client>& clients) {
     if (!currentClient) return;
     
-    // Find client index
+    // Поиск индекса клиента в контейнере
     int index = -1;
     for (int i = 0; i < clients.size(); ++i) {
         if (clients.isValid(i) && &clients[i] == currentClient) {
@@ -345,7 +367,7 @@ void ClientLogic::clientEditProfile(Container<Client>& clients) {
                 currentClient->setFirstName(newValue);
             }
             catch (const Exp_contr& e) {
-                std::cout << "Ошибка при обновлении: " << e.what() << "\n";
+                std::cout << "Error during update: " << e.what() << "\n";
                 menuDisplay.pause();
                 return;
             }
@@ -359,7 +381,7 @@ void ClientLogic::clientEditProfile(Container<Client>& clients) {
                 currentClient->setLastName(newValue);
             }
             catch (const Exp_contr& e) {
-                std::cout << "Ошибка при обновлении: " << e.what() << "\n";
+                std::cout << "Error during update: " << e.what() << "\n";
                 menuDisplay.pause();
                 return;
             }
@@ -373,7 +395,7 @@ void ClientLogic::clientEditProfile(Container<Client>& clients) {
                 currentClient->setPhoneNumber(newValue);
             }
             catch (const Exp_contr& e) {
-                std::cout << "Ошибка при обновлении: " << e.what() << "\n";
+                std::cout << "Error during update: " << e.what() << "\n";
                 menuDisplay.pause();
                 return;
             }
@@ -387,7 +409,7 @@ void ClientLogic::clientEditProfile(Container<Client>& clients) {
                 currentClient->setEmail(newValue);
             }
             catch (const Exp_contr& e) {
-                std::cout << "Ошибка при обновлении: " << e.what() << "\n";
+                std::cout << "Error during update: " << e.what() << "\n";
                 menuDisplay.pause();
                 return;
             }
@@ -399,8 +421,7 @@ void ClientLogic::clientEditProfile(Container<Client>& clients) {
     if (appConnector) appConnector->saveAllData();
     menuDisplay.pause();
 }
-
-
+// Шаблонная функция меню для работы с конкретным типом автомобилей (клиент)
 template<typename T>
 void ClientLogic::clientVehicleTypeMenu(Container<T>& container, const std::string& typeName) {
     while (true) {
@@ -417,21 +438,20 @@ void ClientLogic::clientVehicleTypeMenu(Container<T>& container, const std::stri
         executeClientOperation(container, typeName, choice);
     }
 }
-
 template<typename T>
 void ClientLogic::callVehicleTypeMenu(Container<T>& container, const std::string& typeName, bool isClient) {
     if (isClient) {
         clientVehicleTypeMenu(container, typeName);
     }
 }
-
+// Выполнение операции клиента с конкретным типом автомобилей
 template<typename T>
 void ClientLogic::executeClientOperation(Container<T>& container, const std::string& typeName, int operation) {
     if (!adminLogic) return;
     switch (operation) {
-        case 1: adminLogic->showVehiclesByType(container, typeName, true); break;
-        case 2: adminLogic->searchVehiclesByType(container, typeName, true); break;
-        case 3: adminLogic->sortVehiclesByType(container, typeName, true); break;
+        case 1: adminLogic->showVehiclesByType(container, typeName, true); break;  // Показать доступные
+        case 2: adminLogic->searchVehiclesByType(container, typeName, true); break; // Поиск
+        case 3: adminLogic->sortVehiclesByType(container, typeName, true); break;    // Сортировка
     }
 }
 

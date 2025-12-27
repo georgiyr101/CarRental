@@ -15,10 +15,7 @@
 #include <set>
 #include <algorithm>
 #include <type_traits>
-
-class AdminLogic; // Forward declaration
-
-// Структура для критериев поиска
+class AdminLogic; 
 struct VehicleSearchCriteria {
     bool useBrand = false;
     std::string brand;
@@ -46,35 +43,22 @@ struct VehicleSearchCriteria {
     
     bool useAvailable = false;
     bool available = true;
-    
-    // Для Car и его производных
     bool useFuelType = false;
     std::string fuelType;
-    
     bool useTransmission = false;
     std::string transmission;
-    
-    // Для PremiumCar
     bool useHasDriver = false;
     bool hasDriver = false;
-    
-    // Для Truck
     bool useMaxLoadMin = false;
     double maxLoadMin = 0.0;
-    
     bool useCargoVolumeMin = false;
     double cargoVolumeMin = 0.0;
-    
-    // Для ElectricCar
     bool useBatteryCapacityMin = false;
     double batteryCapacityMin = 0.0;
-    
     bool useRangeMin = false;
     double rangeMin = 0.0;
 };
-
-class AppConnector; // Forward declaration
-
+class AppConnector; 
 class ClientLogic {
 private:
     MenuDisplay& menuDisplay;
@@ -84,9 +68,8 @@ private:
     Container<Truck>& trucks;
     Container<ElectricCar>& electricCars;
     Container<Order>& orders;
-    AppConnector* appConnector; // Для сохранения данных
-    AdminLogic* adminLogic; // Для использования общих функций работы с автомобилями
-    
+    AppConnector* appConnector; 
+    AdminLogic* adminLogic; 
     std::vector<Vehicle*> getAllVehicles(bool onlyAvailable = false);
     void showVehicles(bool onlyAvailable = false);
     template<typename T>
@@ -95,13 +78,11 @@ private:
     void callVehicleTypeMenu(Container<T>& container, const std::string& typeName, bool isClient);
     template<typename T>
     void executeClientOperation(Container<T>& container, const std::string& typeName, int operation);
-    
 public:
     ClientLogic(MenuDisplay& menu, Container<EconomyCar>& ec, Container<PremiumCar>& pc, 
                 Container<Truck>& t, Container<ElectricCar>& elc, Container<Order>& ord, AppConnector* app = nullptr, AdminLogic* admin = nullptr);
     void setAppConnector(AppConnector* app);
     void setAdminLogic(AdminLogic* admin);
-    
     bool authenticateUser();
     void registerClient(Container<Client>& clients);
     void showClientMenu(Container<Client>& clients);

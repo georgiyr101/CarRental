@@ -11,15 +11,13 @@
 #include "ElectricCar.h"
 #include "Order.h"
 #include "Container.h"
-#include "ClientLogic.h" // для VehicleSearchCriteria
+#include "ClientLogic.h" 
 #include <vector>
 #include <functional>
 #include <set>
 #include <algorithm>
 #include <type_traits>
-
-class AppConnector; // Forward declaration
-
+class AppConnector; 
 class AdminLogic {
 private:
     MenuDisplay& menuDisplay;
@@ -30,9 +28,8 @@ private:
     Container<ElectricCar>& electricCars;
     Container<Client>& clients;
     Container<Order>& orders;
-    AppConnector* appConnector; // Для сохранения данных
-    
-    // Шаблонные функции для работы с типами автомобилей
+    AppConnector* appConnector; 
+
     template<typename T>
     void addVehicleByType(Container<T>& container);
     template<typename T>
@@ -47,13 +44,21 @@ private:
     void callVehicleTypeMenu(Container<T>& container, const std::string& typeName, bool isClient);
     template<typename T>
     void executeAdminOperation(Container<T>& container, const std::string& typeName, int operation);
-    
-    // Шаблонные функции для работы с контейнерами
     template<typename T>
     void deleteItemById(Container<T>& container, const std::string& typeName, const std::string& itemName);
     template<typename T>
     int findIndexById(Container<T>& container, int id);
-    
+    // Общий метод для отображения списка транспортных средств
+    template<typename T>
+    void displayVehiclesList(Container<T>& container, const std::string& typeName, bool onlyAvailable);
+    template<typename T, typename Pred>
+    void displayVehiclesList(Container<T>& container, const std::string& typeName, bool onlyAvailable, 
+                              Pred&& filter);
+    // Общий шаблон для обновления поля в контейнере
+    template<typename T, typename ValueType>
+    bool updateField(Container<T>& container, int index, const std::string& prompt, 
+                     const std::function<void(T&, ValueType)>& setter, 
+                     const std::function<ValueType()>& getter = nullptr);
     void addClient();
     void editClient();
     void editClientAt(int index, Client* currentClientPtr);
@@ -62,8 +67,7 @@ public:
     AdminLogic(MenuDisplay& menu, Container<EconomyCar>& ec, Container<PremiumCar>& pc, 
                Container<Truck>& t, Container<ElectricCar>& elc, Container<Client>& cl, Container<Order>& ord, AppConnector* app = nullptr);
     void setAppConnector(AppConnector* app);
-    
-    // Публичные функции для работы с автомобилями (используются также в ClientLogic)
+
     int selectVehicleType(const std::string& title, bool allowAllOption = false);
     std::string getVehicleTypeName(int vehicleType);
     Vehicle* findVehicleById(int id);

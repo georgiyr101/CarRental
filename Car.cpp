@@ -2,16 +2,12 @@
 #include <iomanip>
 
 string Car::getFuelType() const {return fuelType;}
-
 string Car::getTransmissionType() const {return transmissionType;}
-
 void Car::setFuelType(string fuel) { this->fuelType = fuel; }
-
 void Car::setTransmissionType(string transmission) { this->transmissionType = transmission; }
-
 void Car::printHeader() const
 {
-    cout << left << setw(5) << "ID"
+    cout << left << setw(6) << "ID"
         << left << setw(12) << "Brand"
         << left << setw(12) << "Model"
         << left << setw(15) << "License"
@@ -24,10 +20,9 @@ void Car::printHeader() const
     cout << left << setw(15) << "TransmissionType";
     cout << endl;
 }
-
 void Car::printInfo() const
 {
-    cout << left << setw(5) << id
+    cout << left << setw(6) << id
         << left << setw(12) << brand
         << left << setw(12) << model
         << left << setw(15) << licensePlate
@@ -40,24 +35,18 @@ void Car::printInfo() const
     cout << left << setw(15) << transmissionType;
     cout << endl;
 }
-
-double Car::calculateRentPrice(int days)
-{
-    return pricePerDay * days;
-}
-
+double Car::calculateRentPrice(int days) {return pricePerDay * days;}
 ostream& operator<<(ostream& os, const Car& car)
 {
     os << static_cast<const Vehicle&>(car);
     os << " " << car.fuelType << " " << car.transmissionType;
     return os;
 }
-
 istream& operator>>(istream& is, Car& car)
 {
-    // Читаем базовый класс Vehicle
+    // Read base class Vehicle
     is >> static_cast<Vehicle&>(car);
-    // Читаем поля Car
+    // Read Car fields
     is >> car.fuelType >> car.transmissionType;
     return is;
 }

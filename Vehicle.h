@@ -2,10 +2,8 @@
 #define VEHICLE_H
 #include <iostream>
 #include <string>
-
 using namespace std;
-
-class Vehicle
+class Vehicle 
 {
 protected:
 	int id = 0;
@@ -14,9 +12,9 @@ protected:
 	string licensePlate = "";
 	double pricePerDay = 0.0;
 	bool isAvailable = true;
-	int year = 0;                    // Год выпуска
-	double mileage = 0.0;           // Пробег в км
-	string color = "";              // Цвет
+	int year = 0;                   
+	double mileage = 0.0;           
+	string color = "";              
     static int nextId;
 
 public:
@@ -49,12 +47,9 @@ public:
         }
         return *this;
     }
-
     virtual ~Vehicle() = default;
-
     static void setNextId(int id);
     static int getNextId();
-
     int getId() const;
     string getBrand() const;
     string getModel() const;
@@ -64,7 +59,6 @@ public:
     int getYear() const;
     double getMileage() const;
     string getColor() const;
-
     void setId(int id);
     void setBrand(const string& brand);
     void setModel(const string& model);
@@ -74,11 +68,9 @@ public:
     void setYear(int year);
     void setMileage(double mileage);
     void setColor(const string& color);
-
     virtual void printHeader() const;
     virtual void printInfo() const;
     virtual double calculateRentPrice(int days);
-
     friend ostream& operator<<(ostream& os, const Vehicle& v);
     friend istream& operator >> (istream& is, Vehicle& v);
 };

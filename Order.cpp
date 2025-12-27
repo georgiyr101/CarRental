@@ -4,109 +4,54 @@
 #include <iomanip>
 
 int Order::nextId = 1;
-
-void Order::setNextId(int id) {
-    nextId = id;
-}
-
-int Order::getNextId() {
-    return nextId;
-}
-
+void Order::setNextId(int id) {nextId = id;}
+int Order::getNextId() {return nextId;}
 void Order::calculateTotal()
 {
-    if (vehicle && days > 0)
-    {
-        totalPrice = vehicle->calculateRentPrice(days);
-    }
-    else
-    {
-        totalPrice = 0.0;
-    }
+    if (vehicle && days > 0){totalPrice = vehicle->calculateRentPrice(days);}
+    else {totalPrice = 0.0;}
 }
 
 void Order::approve()
 {
-    if (vehicle)
-    {
-        vehicle->setIsAvailable(false); 
-    }
+    if (vehicle) {vehicle->setIsAvailable(false); }
     status = Status::APPROVED;
     rejectReason.clear();
-    std::cout << "Заказ #" << id << " одобрен." << std::endl;
+    std::cout << "Order #" << id << " approved." << std::endl;
 }
 
 void Order::reject(const std::string& reason)
 {
     status = Status::REJECTED;
     rejectReason = reason;
-    std::cout << "Заказ #" << id << " отклонен. Причина: " << reason << std::endl;
+    std::cout << "Order #" << id << " rejected. Reason: " << reason << std::endl;
 }
 
-int Order::getId() const
-{
-    return id;
-}
+int Order::getId() const {return id;}
 
-void Order::setId(int newId)
-{
-    id = newId;
-}
+void Order::setId(int newId) {id = newId;}
 
-void Order::setTotalPrice(double price)
-{
-    totalPrice = price;
-}
+void Order::setTotalPrice(double price) {totalPrice = price;}
 
-void Order::setDays(int newDays)
-{
-    days = newDays;
-}
+void Order::setDays(int newDays) {days = newDays;}
 
-void Order::setRejectReason(const std::string& reason)
-{
-    rejectReason = reason;
-}
+void Order::setRejectReason(const std::string& reason) {rejectReason = reason;}
 
-void Order::setReturnStatus(ReturnStatus status)
-{
-    returnStatus = status;
-}
+void Order::setReturnStatus(ReturnStatus status){returnStatus = status;}
 
-Client* Order::getClient() const
-{
-    return client;
-}
+Client* Order::getClient() const{return client;}
 
-Vehicle* Order::getVehicle() const
-{
-    return vehicle;
-}
+Vehicle* Order::getVehicle() const{return vehicle;}
 
-Status Order::getStatus() const
-{
-    return status;
-}
+Status Order::getStatus() const{return status;}
 
-double Order::getTotalPrice() const
-{
-    return totalPrice;
-}
+double Order::getTotalPrice() const{return totalPrice;}
 
-std::string Order::getRejectReason() const
-{
-    return rejectReason;
-}
+std::string Order::getRejectReason() const{return rejectReason;}
 
-int Order::getDays() const
-{
-    return days;
-}
+int Order::getDays() const{return days;}
 
-void Order::setStatus(Status newStatus)
-{
-    status = newStatus;
-}
+void Order::setStatus(Status newStatus){status = newStatus;}
 
 void Order::returnVehicle(ReturnStatus returnStatus)
 {
@@ -114,13 +59,10 @@ void Order::returnVehicle(ReturnStatus returnStatus)
     
     if (vehicle)
     {
-        vehicle->setIsAvailable(true);
-        // Обновляем пробег (пример: средний пробег за день аренды)
-        double estimatedMileage = days * 100.0; // Предполагаем 100 км в день
+        double estimatedMileage = days * 100.0; 
         double currentMileage = vehicle->getMileage();
         vehicle->setMileage(currentMileage + estimatedMileage);
     }
-    
     status = Status::COMPLETED;
 }
 
@@ -128,44 +70,30 @@ ReturnStatus Order::getReturnStatus() const { return returnStatus; }
 
 int Order::getClientId() const 
 {
-    if (client) {
-        return client->getId();
-    }
+    if (client) {return client->getId();}
     return clientId;
 }
 
 int Order::getVehicleId() const 
 {
-    if (vehicle) {
-        return vehicle->getId();
-    }
+    if (vehicle) {return vehicle->getId();}
     return vehicleId;
 }
 
-void Order::setClientId(int id) 
-{
-    clientId = id;
-}
+void Order::setClientId(int id) {clientId = id;}
 
-void Order::setVehicleId(int id) 
-{
-    vehicleId = id;
-}
+void Order::setVehicleId(int id) {vehicleId = id;}
 
 void Order::setClient(Client* client)
 {
     this->client = client;
-    if (client) {
-        clientId = client->getId();
-    }
+    if (client) {clientId = client->getId();}
 }
 
 void Order::setVehicle(Vehicle* vehicle)
 {
     this->vehicle = vehicle;
-    if (vehicle) {
-        vehicleId = vehicle->getId();
-    }
+    if (vehicle) {vehicleId = vehicle->getId();}
 }
 
 void Order::printHeader() const
@@ -185,16 +113,12 @@ void Order::printInfo() const
     std::string clientName = "";
     if (client) {
         clientName = client->getFirstName() + " " + client->getLastName();
-    } else {
-        clientName = "N/A";
-    }
+    } else {clientName = "N/A";}
     
     std::string vehicleInfo = "";
     if (vehicle) {
         vehicleInfo = vehicle->getBrand() + " " + vehicle->getModel();
-    } else {
-        vehicleInfo = "N/A";
-    }
+    } else {vehicleInfo = "N/A";}
     
     std::string statusStr;
     switch (status) {
@@ -204,7 +128,6 @@ void Order::printInfo() const
         case Status::COMPLETED: statusStr = "Completed"; break;
         case Status::CANCELLED: statusStr = "Cancelled"; break;
     }
-    
     std::cout << std::left << std::setw(8) << id
         << std::left << std::setw(25) << clientName
         << std::left << std::setw(25) << vehicleInfo
@@ -225,17 +148,14 @@ std::ostream& operator<<(std::ostream& os, const Order& order)
     int days = order.getDays();
     double totalPrice = order.getTotalPrice();
     std::string rejectReason = order.getRejectReason();
-    
-    // Сохраняем длину строки перед строкой для правильного чтения
+
     os << orderId << " " << clientId << " " << vehicleId << " " 
        << days << " " << totalPrice << " " 
        << statusValue << " " << rejectReason.length() << " ";
-    
-    // Записываем строку
+
     if (!rejectReason.empty()) {
         os << rejectReason;
     }
-    
     os << " " << returnStatusValue;
     return os;
 }
@@ -245,21 +165,15 @@ std::istream& operator>>(std::istream& is, Order& order)
     int orderId, statusValue, returnStatusValue, reasonLength;
     int clientId, vehicleId, days;
     double totalPrice;
-    
     is >> orderId >> clientId >> vehicleId 
        >> days >> totalPrice >> statusValue >> reasonLength;
-    
     order.setId(orderId);
     order.setClientId(clientId);
     order.setVehicleId(vehicleId);
     order.setDays(days);
     order.setTotalPrice(totalPrice);
-    
-    // Пропускаем пробел перед строкой
     is.ignore(1);
-    
-    // Читаем строку заданной длины
-    if (reasonLength > 0 && reasonLength < 10000) {  // Проверка на разумный размер
+    if (reasonLength > 0 && reasonLength < 10000) {  
         std::string reason;
         reason.resize(reasonLength);
         is.read(&reason[0], reasonLength);
@@ -267,12 +181,9 @@ std::istream& operator>>(std::istream& is, Order& order)
     } else {
         order.setRejectReason("");
     }
-    
-    // Пропускаем пробел после строки (если есть)
     if (is.peek() == ' ') {
         is.ignore(1);
     }
-    
     is >> returnStatusValue;
     order.setStatus(static_cast<Status>(statusValue));
     order.setReturnStatus(static_cast<ReturnStatus>(returnStatusValue));

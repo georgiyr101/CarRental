@@ -28,8 +28,6 @@ public:
 		driverLicense(driverLicense), totalSpent(totalSpent),
 		rentalCount(rentalCount) {}
 	virtual ~Client() = default;
-
-	// Геттеры
 	int getId() const;
 	void setId(int id);
 	string getFirstName() const;
@@ -41,8 +39,6 @@ public:
 	string getDriverLicense() const;
 	double getTotalSpent() const;
 	int getRentalCount() const;
-
-	// Сеттеры
 	void setFirstName(const string& name);
 	void setLastName(const string& name);
 	void setPassport(const string& passport);
@@ -52,14 +48,10 @@ public:
 	void setDriverLicense(const string& license);
 	void setTotalSpent(double spent);
 	void setRentalCount(int count);
-
-	// Новые методы
 	void addToTotalSpent(double amount);   // Добавить к общей сумме
 	void incrementRentalCount();            // Увеличить счетчик аренд
-
 	void printHeader() const;
 	void printInfo() const;
-
 	friend ostream& operator<<(ostream& os, const Client& client);
 	friend istream& operator>>(istream& is, Client& client);
 };

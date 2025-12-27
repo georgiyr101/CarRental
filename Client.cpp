@@ -2,119 +2,53 @@
 #include <iostream>
 #include <iomanip>
 
-int Client::getId() const
-{
-    return id;
-}
+int Client::getId() const {return id;}
 
-void Client::setId(int id)
-{
-    this->id = id;
-}
+void Client::setId(int id){this->id = id;}
 
-string Client::getFirstName() const
-{
-    return firstName;
-}
+string Client::getFirstName() const{return firstName;}
 
-string Client::getLastName() const
-{
-    return lastName;
-}
+string Client::getLastName() const{return lastName;}
 
-string Client::getPassport() const
-{
-    return passport;
-}
+string Client::getPassport() const{return passport;}
 
-string Client::getPhoneNumber() const
-{
-    return phoneNumber;
-}
+string Client::getPhoneNumber() const{return phoneNumber;}
 
-string Client::getEmail() const
-{
-    return email;
-}
+string Client::getEmail() const{return email;}
 
-string Client::getDateOfBirth() const
-{
-    return dateOfBirth;
-}
+string Client::getDateOfBirth() const{return dateOfBirth;}
 
-string Client::getDriverLicense() const
-{
-    return driverLicense;
-}
+string Client::getDriverLicense() const{return driverLicense;}
 
-double Client::getTotalSpent() const
-{
-    return totalSpent;
-}
+double Client::getTotalSpent() const{ return totalSpent;}
 
-int Client::getRentalCount() const
-{
-    return rentalCount;
-}
+int Client::getRentalCount() const{return rentalCount;}
 
-void Client::setFirstName(const string& name)
-{
-    this->firstName = name;
-}
+void Client::setFirstName(const string& name){this->firstName = name;}
 
-void Client::setLastName(const string& name)
-{
-    this->lastName = name;
-}
+void Client::setLastName(const string& name){this->lastName = name;}
 
-void Client::setPassport(const string& passport)
-{
-    this->passport = passport;
-}
+void Client::setPassport(const string& passport){this->passport = passport;}
 
-void Client::setPhoneNumber(const string& phone)
-{
-    this->phoneNumber = phone;
-}
+void Client::setPhoneNumber(const string& phone){this->phoneNumber = phone;}
 
-void Client::setEmail(const string& email)
-{
-    this->email = email;
-}
+void Client::setEmail(const string& email){this->email = email;}
 
-void Client::setDateOfBirth(const string& date)
-{
-    this->dateOfBirth = date;
-}
+void Client::setDateOfBirth(const string& date){this->dateOfBirth = date;}
 
-void Client::setDriverLicense(const string& license)
-{
-    this->driverLicense = license;
-}
+void Client::setDriverLicense(const string& license){this->driverLicense = license;}
 
-void Client::setTotalSpent(double spent)
-{
-    this->totalSpent = spent;
-}
+void Client::setTotalSpent(double spent){this->totalSpent = spent;}
 
-void Client::setRentalCount(int count)
-{
-    this->rentalCount = count;
-}
+void Client::setRentalCount(int count){this->rentalCount = count;}
 
-void Client::addToTotalSpent(double amount)
-{
-    totalSpent += amount;
-}
+void Client::addToTotalSpent(double amount){totalSpent += amount;}
 
-void Client::incrementRentalCount()
-{
-    rentalCount++;
-}
+void Client::incrementRentalCount(){rentalCount++;}
 
 void Client::printHeader() const
 {
-    cout << left << setw(5) << "ID"
+    cout << left << setw(6) << "ID"
         << left << setw(15) << "Login"
         << left << setw(15) << "First Name"
         << left << setw(15) << "Last Name"
@@ -130,7 +64,7 @@ void Client::printHeader() const
 
 void Client::printInfo() const
 {
-    cout << left << setw(5) << id
+    cout << left << setw(6) << id
         << left << setw(15) << getLogin()
         << left << setw(15) << firstName
         << left << setw(15) << lastName
@@ -158,23 +92,23 @@ istream& operator>>(istream& is, Client& client)
 {
     is >> client.id;
     is >> static_cast<User&>(client);
-    cout << "Имя: ";
+    cout << "First name: ";
     is >> client.firstName;
-    cout << "Фамилия: ";
+    cout << "Last name: ";
     is >> client.lastName;
-    cout << "Паспорт: ";
+    cout << "Passport: ";
     is >> client.passport;
-    cout << "Телефон: ";
+    cout << "Phone: ";
     is >> client.phoneNumber;
     cout << "Email: ";
     is >> client.email;
-    cout << "Дата рождения: ";
+    cout << "Date of birth: ";
     is >> client.dateOfBirth;
-    cout << "Водительские права: ";
+    cout << "Driver license: ";
     is >> client.driverLicense;
-    cout << "Всего потрачено: ";
+    cout << "Total spent: ";
     is >> client.totalSpent;
-    cout << "Количество аренд: ";
+    cout << "Rental count: ";
     is >> client.rentalCount;
     return is;
 }

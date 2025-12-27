@@ -28,13 +28,12 @@ private:
     Container<Client> clients;
     Container<Order> orders;
     
-    // Логика клиента и админа (инициализируются в конструкторе)
+    // Логика клиента и админа 
     ClientLogic* clientLogic;
     AdminLogic* adminLogic;
     
-    // Текущий пользователь
-    Client* currentClient;
-    Admin* currentAdmin;
+    Client* currentClient; // Текущий пользователь
+    Admin* currentAdmin; // Текущий администратор 
     bool isAdminMode;
     
     void loadAllData();

@@ -1,22 +1,25 @@
 #include "PremiumCar.h"
 #include <iomanip>
 
-bool PremiumCar::getHasDriver() const {
-    return hasDriver;
-}
-
-void PremiumCar::setHasDriver(bool driver) {
-    hasDriver = driver;
-}
-
+bool PremiumCar::getHasDriver() const {return hasDriver;}
+void PremiumCar::setHasDriver(bool driver) {hasDriver = driver;}
 void PremiumCar::printHeader() const {
-    Car::printHeader();
+    cout << left << setw(6) << "ID"
+        << left << setw(12) << "Brand"
+        << left << setw(12) << "Model"
+        << left << setw(15) << "License"
+        << left << setw(10) << "Price"
+        << left << setw(6) << "Year"
+        << left << setw(10) << "Mileage"
+        << left << setw(10) << "Color"
+        << left << setw(12) << "Available";
+    cout << left << setw(15) << "Fuel Type";
+    cout << left << setw(15) << "Transmission";
     cout << left << setw(12) << "Has Driver";
     cout << endl;
 }
-
 void PremiumCar::printInfo() const {
-    cout << left << setw(5) << getId()
+    cout << left << setw(6) << getId()
         << left << setw(12) << getBrand()
         << left << setw(12) << getModel()
         << left << setw(15) << getLicensePlate()
